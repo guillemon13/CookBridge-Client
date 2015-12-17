@@ -13,7 +13,9 @@ import org.glassfish.jersey.client.ClientConfig;
 import org.glassfish.jersey.client.authentication.HttpAuthenticationFeature;
 
 import com.google.appengine.repackaged.org.codehaus.jackson.map.ObjectMapper;
+
 import java.io.*;
+import java.net.URI;
 import java.text.DateFormat;
 import java.text.ParseException;
 import java.text.SimpleDateFormat;
@@ -35,11 +37,14 @@ public class UserClient {
 			BufferedReader br = new BufferedReader(new InputStreamReader(System.in));
 			
 			System.out.println("Welcome to CookBridge 1.0!");
-		
+			
 			WebTarget target = client.target(COOKBRIDGE_URI);    
-
+			COOKBRIDGE_URI = "http://localhost:8080";
+			
 			int option = 0;
 			while (option != 9) {
+				target = client.target(COOKBRIDGE_URI);   
+				
 				System.out.println("MAIN MENU. Select an option to work with:");
 				
 				System.out.println("1.- Chefs management.");
@@ -132,9 +137,7 @@ public class UserClient {
 						showOptions("Restaurant");
 						System.out.println("Choose option and press ENTER:");
 						int opt = Integer.valueOf(br.readLine());			
-						
-						target = target.path("restaurants");
-						
+
 						//In case user wants to register for the first time, don't login!
 						if (opt != 3 && password.equals("")) {
 							login(br); 
@@ -144,6 +147,8 @@ public class UserClient {
 							client.register(feature);
 							target = client.target(COOKBRIDGE_URI);
 						}
+						
+						target = target.path("restaurants");
 						
 						switch (opt) {
 							case 1: {
@@ -220,7 +225,7 @@ public class UserClient {
 						}
 						
 						target = target.path("jobOffer");
-					
+						
 						switch (opt) {
 							case 1: {
 								Response response = target.request(MediaType.APPLICATION_JSON).get();
@@ -232,7 +237,7 @@ public class UserClient {
 								
 							}
 							case 2: {
-								System.out.println("Introduce your ID and press ENTER:");
+								System.out.println("Introduce JobOffer's ID and press ENTER:");
 								Long id = Long.valueOf(br.readLine());
 								WebTarget getTarget = target.path("/" + id.toString());
 								Response response = getTarget.request(MediaType.APPLICATION_JSON).get();
@@ -276,9 +281,12 @@ public class UserClient {
 							case 6: {
 								System.out.println("Introduce the ID of the job offer and press ENTER:");
 								Long id = Long.valueOf(br.readLine());
-								WebTarget applyTarget = target.path("/" + id.toString() + "/apply?chefId=" + UserClient.id);
 								
-								Response applyCreation = applyTarget.request(MediaType.APPLICATION_JSON_TYPE).get();
+								WebTarget applyTarget = target.path("/" + id.toString() + "/apply");
+								
+								applyTarget = applyTarget.queryParam("chefId", UserClient.id);
+								
+								Response applyCreation = applyTarget.request(MediaType.APPLICATION_JSON_TYPE).post(null);
 								
 								if (applyCreation.getStatus() == 200) {
 									System.out.println("Application created.");
@@ -299,8 +307,7 @@ public class UserClient {
 						System.out.println("5.- DELETE a work");
 						System.out.println("Choose option and press ENTER:");
 						int opt = Integer.valueOf(br.readLine());			
-								
-						target = target.path("works");
+							
 						
 						//Compulsory to login if user is not.
 						if (password.equals("")) {
@@ -312,6 +319,9 @@ public class UserClient {
 							target = client.target(COOKBRIDGE_URI);
 						}
 						
+						target = target.path("works");
+						
+						
 						switch (opt) {
 							case 1: {
 								System.out.println("Introduce your ChefID and press ENTER:");
@@ -320,7 +330,9 @@ public class UserClient {
 								System.out.println("Introduce the RestaurantID and press ENTER:");
 								Long restId = Long.valueOf(br.readLine());
 								
-								target = target.path("?chefId=" + chefId.toString() + "&restaurantId=" + restId.toString());
+								target.queryParam("chefId", chefId.toString());
+								target.queryParam("restaurantId", restId.toString());
+								
 								Response response = target.request(MediaType.APPLICATION_JSON).get();
 								String jobOffers = response.readEntity(String.class);
 								System.out.println("List of works from Chef " + UserClient.id + ":");
@@ -330,7 +342,7 @@ public class UserClient {
 								
 							}
 							case 2: {
-								System.out.println("Introduce your ID and press ENTER:");
+								System.out.println("Introduce the Work ID and press ENTER:");
 								Long id = Long.valueOf(br.readLine());
 								WebTarget getTarget = target.path("/" + id.toString());
 								Response response = getTarget.request(MediaType.APPLICATION_JSON).get();
@@ -361,7 +373,7 @@ public class UserClient {
 								NewWork work = createWork(br);
 															
 								String updatedWork = putTarget.request(MediaType.APPLICATION_JSON_TYPE)
-							     	.post(Entity.entity(jsonToString(work),MediaType.APPLICATION_JSON_TYPE), String.class);
+							     	.put(Entity.entity(jsonToString(work),MediaType.APPLICATION_JSON_TYPE), String.class);
 								
 								System.out.println(updatedWork);
 								
@@ -498,15 +510,15 @@ public class UserClient {
 	private static NewRestaurant createRestaurant(BufferedReader br) throws IOException {
 		NewRestaurant restaurant = new NewRestaurant();
 		
-		System.out.println("Introduce your name and press ENTER");
+		System.out.println("Introduce the restaurant's name and press ENTER");
 		restaurant.setName(br.readLine());
 		System.out.println("Introduce your password and press ENTER");
 		restaurant.setPassword(br.readLine());
-		System.out.println("Introduce your address and press ENTER");
+		System.out.println("Introduce the address and press ENTER");
 		restaurant.setAddress(br.readLine());
-		System.out.println("Introduce your city and press ENTER");
+		System.out.println("Introduce the city and press ENTER");
 		restaurant.setCity(br.readLine());
-		System.out.println("Introduce your website and press ENTER");
+		System.out.println("Introduce the website and press ENTER");
 		restaurant.setWebsite(br.readLine());
 		
 		return restaurant;
@@ -529,7 +541,7 @@ public class UserClient {
 	
 	private static NewWork createWork(BufferedReader br) throws IOException {
 		NewWork work = new NewWork();
-		DateFormat format = new SimpleDateFormat("MMMM d, yyyy", Locale.ENGLISH);
+		DateFormat format = new SimpleDateFormat("dd-mm-yyyy", Locale.ENGLISH);
 		
 		try {
 			
