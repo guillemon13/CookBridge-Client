@@ -19,15 +19,21 @@ import java.net.URI;
 import java.text.DateFormat;
 import java.text.ParseException;
 import java.text.SimpleDateFormat;
+import java.util.Enumeration;
 import java.util.Locale;
 
 public class UserClient {
-
+	
 	private static String COOKBRIDGE_URI = "http://cookbridge-1160.appspot.com";
 	//private static String COOKBRIDGE_URI_LOCAL = "http://localhost:8080";
 	private static long id = -1L;
 	private static String password = "";
 	
+	//ROLES
+	//1 - Chef
+	//2 - Restaurant
+	
+	private static int role = -1; 
 	
 	public static void main(String[] args) {
 		try {
@@ -51,10 +57,19 @@ public class UserClient {
 				System.out.println("3.- Job Offers management.");
 				System.out.println("4.- Works management.");
 				System.out.println("5.- Applications management.");
-				
+				System.out.println("6.- Logout from CookBridge");
 				System.out.println("9.- EXIT");
 				System.out.println("Introduce number and press ENTER");
 				option = Integer.valueOf(br.readLine());
+				
+				//We cannot do some options!
+				if (role == 1 && option == 2) {
+					System.out.println("You are a CHEF, you cannot access to Restaurant section!");
+					option = 8;
+				} else if (role == 2 && ((option == 1)||(option == 4))) {
+					System.out.println("You are a RESTAURANT, you cannot access to Chef section!");
+					option = 8;
+				}
 				
 				switch (option) {
 					case 1: {
@@ -65,6 +80,7 @@ public class UserClient {
 						//In case user wants to register for the first time, don't login!
 						if (opt != 3 && password.equals("")) {
 							login(br);
+							role = 1;
 							
 							//Reload target with AUTH set up.
 							HttpAuthenticationFeature feature = HttpAuthenticationFeature.basic(Long.valueOf(id).toString(), password);
@@ -84,7 +100,7 @@ public class UserClient {
 								break;
 							}
 							case 2: {
-								System.out.println("Introduce your ID and press ENTER:");
+								System.out.println("Introduce the Chef's ID and press ENTER:");
 								Long id = Long.valueOf(br.readLine());
 								WebTarget getTarget = target.path("/" + id.toString());
 								Response response = getTarget.request(MediaType.APPLICATION_JSON).get();
@@ -124,6 +140,13 @@ public class UserClient {
 								Long id = Long.valueOf(br.readLine());
 								deleteEntity(id, target);
 								
+								//Logout user automatically.
+								password = "";
+								role = 0;
+								id = -1L;
+								System.out.println("Logout OK");
+								client = ClientBuilder.newClient(config);
+								
 								break;
 							}
 						}
@@ -159,6 +182,7 @@ public class UserClient {
 								break;
 							}
 							case 2: {
+								System.out.println("Introduce the Restaurant's ID and press ENTER.");
 								Long id = Long.valueOf(br.readLine());
 								WebTarget getTarget = target.path("/" + id.toString());
 								Response response = getTarget.request(MediaType.APPLICATION_JSON).get();
@@ -197,6 +221,13 @@ public class UserClient {
 								System.out.println("Introduce your ID and press ENTER:");
 								Long id = Long.valueOf(br.readLine());
 								deleteEntity(id, target);
+								
+								//Logout user automatically
+								password = "";
+								role = 0;
+								id = -1L;
+								System.out.println("Logout OK");
+								client = ClientBuilder.newClient(config);
 								break;
 							}
 						}
@@ -205,12 +236,13 @@ public class UserClient {
 					}
 					
 					case 3: {
-						System.out.println("1.- Retrieve restaurant's job offers");
-						System.out.println("2.- GET one job offer");
-						System.out.println("3.- POST a job offer");
-						System.out.println("4.- PUT a job offer");
-						System.out.println("5.- DELETE a job offer");
-						System.out.println("6.- APPLY for a job offer");
+						
+						System.out.println("1.- Retrieve restaurant's job offers (CHEFS)");
+						System.out.println("2.- GET one job offer (RESTAURANTS)");
+						System.out.println("3.- POST a job offer (RESTAURANTS)");
+						System.out.println("4.- PUT a job offer (RESTAURANTS)");
+						System.out.println("5.- DELETE a job offer (RESTAURANTS)");
+						System.out.println("6.- APPLY for a job offer (CHEFS)");
 						System.out.println("Choose option and press ENTER:");
 						int opt = Integer.valueOf(br.readLine());			
 						
@@ -223,13 +255,25 @@ public class UserClient {
 							target = client.target(COOKBRIDGE_URI);
 						}
 						
+						if (role == 2 && ((opt == 1) || (opt == 6))) {
+							System.out.println("You are a RESTAURANT, you cannot access to Chef options.");
+							opt = 8;
+						} else if (role == 1 && ((opt >= 2) && (opt <= 5))) {
+							System.out.println("You are a CHEF, you cannot access to Restaurant options.");
+							opt = 8;
+						}
+						
 						target = target.path("jobOffer");
 						
 						switch (opt) {
 							case 1: {
+								System.out.println("Introduce the RestaurantID and press ENTER:");
+								Long restId = Long.valueOf(br.readLine());
+								target = target.queryParam("restaurantId", restId.toString());
+								
 								Response response = target.request(MediaType.APPLICATION_JSON).get();
 								String jobOffers = response.readEntity(String.class);
-								System.out.println("List of job offers by Restaurant " + UserClient.id + ":");
+								System.out.println("List of job offers by Restaurant " + restId.toString() + ":");
 								System.out.println(jobOffers);
 								
 								break;
@@ -285,7 +329,7 @@ public class UserClient {
 								
 								applyTarget = applyTarget.queryParam("chefId", UserClient.id);
 								
-								Response applyCreation = applyTarget.request(MediaType.APPLICATION_JSON_TYPE).post(null);
+								Response applyCreation = applyTarget.request(MediaType.APPLICATION_JSON_TYPE).get();
 								
 								if (applyCreation.getStatus() == 200) {
 									System.out.println("Application created.");
@@ -299,11 +343,11 @@ public class UserClient {
 					}
 					
 					case 4: {
-						System.out.println("1.- Retrieve chef's work in a restaurant");
-						System.out.println("2.- GET one work");
-						System.out.println("3.- POST a work");
-						System.out.println("4.- PUT a work");
-						System.out.println("5.- DELETE a work");
+						System.out.println("1.- Retrieve chef's work in a restaurant (CHEFS)");
+						System.out.println("2.- GET one work (CHEFS)");
+						System.out.println("3.- POST a work (CHEFS)");
+						System.out.println("4.- PUT a work (CHEFS)");
+						System.out.println("5.- DELETE a work (CHEFS)");
 						System.out.println("Choose option and press ENTER:");
 						int opt = Integer.valueOf(br.readLine());			
 							
@@ -391,9 +435,9 @@ public class UserClient {
 					}
 					
 					case 5: {
-						System.out.println("1.- GET all job offer's applications.");
-						System.out.println("2.- GET info of ONE application.");
-						System.out.println("3.- DELETE an application");
+						System.out.println("1.- GET all job offer's applications (RESTAURANTS).");
+						System.out.println("2.- GET info of ONE application (CHEFS).");
+						System.out.println("3.- DELETE an application (CHEFS).");
 						System.out.println("Choose option and press ENTER:");
 						int opt = Integer.valueOf(br.readLine());			
 					
@@ -448,6 +492,18 @@ public class UserClient {
 						}
 						break;
 					}
+					//Logout user.
+					case 6: {
+						if (role > 0) {
+							password = "";
+							role = 0;
+							id = -1L;
+							System.out.println("Logout OK");
+							client = ClientBuilder.newClient(config);
+						} else{
+							System.out.println("You are not Logged in!");
+						}
+					}
 				}
 			}
 			
@@ -458,6 +514,11 @@ public class UserClient {
 	}
 
 	private static void login(BufferedReader br) throws IOException {
+		System.out.println("Are you a Chef or a Restaurant?:");
+		System.out.println("1.- Chef");
+		System.out.println("2.- Restaurant");
+		role = Integer.valueOf(br.readLine());
+		
 		System.out.println("Introduce your ID and press ENTER");
 		id = Long.valueOf(br.readLine());
 		
@@ -528,7 +589,7 @@ public class UserClient {
 			
 		System.out.println("Introduce the ID of the restaurant and press ENTER");
 		jobOffer.setRestaurantId(Long.valueOf(br.readLine()));
-		System.out.println("Introduce the name and press ENTER");
+		System.out.println("Introduce the position's name and press ENTER");
 		jobOffer.setName(br.readLine());
 		System.out.println("Introduce the description and press ENTER");
 		jobOffer.setJobDescription(br.readLine());
