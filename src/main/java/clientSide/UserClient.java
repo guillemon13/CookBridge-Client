@@ -39,7 +39,6 @@ public class UserClient {
 			System.out.println("Welcome to CookBridge 1.0!");
 			
 			WebTarget target = client.target(COOKBRIDGE_URI);    
-			COOKBRIDGE_URI = "http://localhost:8080";
 			
 			int option = 0;
 			while (option != 9) {
