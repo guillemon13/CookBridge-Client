@@ -30,7 +30,7 @@ public class UserClient {
 	private static String password = "";
 	
 	public static void main(String[] args) {
-		try {
+		
 			ClientConfig config = new ClientConfig();
 			Client client = ClientBuilder.newClient(config);
 			
@@ -42,531 +42,533 @@ public class UserClient {
 			
 			int option = 0;
 			while (option != 9) {
-				target = client.target(COOKBRIDGE_URI);   
-				
-				System.out.println("MAIN MENU. Select an option to work with:");
-				
-				System.out.println("1.- Chefs management.");
-				System.out.println("2.- Restaurants management.");
-				System.out.println("3.- Job Offers management.");
-				System.out.println("4.- Works management.");
-				System.out.println("5.- Applications management.");
-				System.out.println("6.- Logout from CookBridge");
-				System.out.println("9.- EXIT");
-				System.out.println("Introduce number and press ENTER");
-				option = Integer.valueOf(br.readLine());
+				try {
+					target = client.target(COOKBRIDGE_URI);   
+					
+					System.out.println("MAIN MENU. Select an option to work with:");
+					
+					System.out.println("1.- Chefs management.");
+					System.out.println("2.- Restaurants management.");
+					System.out.println("3.- Job Offers management.");
+					System.out.println("4.- Works management.");
+					System.out.println("5.- Applications management.");
+					System.out.println("6.- Logout from CookBridge");
+					System.out.println("9.- EXIT");
+					System.out.println("Introduce number and press ENTER");
+					option = Integer.valueOf(br.readLine());
+								
+					switch (option) {
+						case 1: {
+							showOptions("Chef");
+							System.out.println("Choose option and press ENTER:");
+							int opt = Integer.valueOf(br.readLine());
 							
-				switch (option) {
-					case 1: {
-						showOptions("Chef");
-						System.out.println("Choose option and press ENTER:");
-						int opt = Integer.valueOf(br.readLine());
-						
-						switch (opt) {
-							case 1: {
-								target = target.path("chefs");
-								Response response = target.request(MediaType.APPLICATION_JSON).get();
-								String chefs = response.readEntity(String.class);
-								System.out.println("List of chefs:");
-								System.out.println(chefs);
-								
-								break;
-							}
-							case 2: {
-								target = target.path("chefs");
-								System.out.println("Introduce the Chef's ID and press ENTER:");
-								Long id = Long.valueOf(br.readLine());
-								WebTarget getTarget = target.path("/" + id.toString());
-								Response response = getTarget.request(MediaType.APPLICATION_JSON).get();
-								String chef = response.readEntity(String.class);
-								int status = response.getStatus();
-								
-								if (status == 200) System.out.println(chef.toString());
-								else System.out.println("ERROR! CHEF NOT FOUND!");
-								
-								break;
-							}
-							case 3: {
-								NewChef chef = createChef(br);
-								target = target.path("chefs");
-								String addedChef = target.request(MediaType.APPLICATION_JSON_TYPE)
-										    .post(Entity.entity(jsonToString(chef),MediaType.APPLICATION_JSON_TYPE), String.class);
-								
-								System.out.println(addedChef);
-								
-								break;
-							}
-							
-							case 4: {
-								if (password.equals("")) {
-									login(br);
+							switch (opt) {
+								case 1: {
+									target = target.path("chefs");
+									Response response = target.request(MediaType.APPLICATION_JSON).get();
+									String chefs = response.readEntity(String.class);
+									System.out.println("List of chefs:");
+									System.out.println(chefs);
 									
-									//Reload target with AUTH set up.
-									HttpAuthenticationFeature feature = HttpAuthenticationFeature.basic(Long.valueOf(id).toString(), password);
-									client = client.register(feature);
-									target = client.target(COOKBRIDGE_URI);    
+									break;
+								}
+								case 2: {
+									target = target.path("chefs");
+									System.out.println("Introduce the Chef's ID and press ENTER:");
+									Long id = Long.valueOf(br.readLine());
+									WebTarget getTarget = target.path("/" + id.toString());
+									Response response = getTarget.request(MediaType.APPLICATION_JSON).get();
+									String chef = response.readEntity(String.class);
+									int status = response.getStatus();
+									
+									if (status == 200) System.out.println(chef.toString());
+									else System.out.println("ERROR! CHEF NOT FOUND!");
+									
+									break;
+								}
+								case 3: {
+									NewChef chef = createChef(br);
+									target = target.path("chefs");
+									String addedChef = target.request(MediaType.APPLICATION_JSON_TYPE)
+											    .post(Entity.entity(jsonToString(chef),MediaType.APPLICATION_JSON_TYPE), String.class);
+									
+									System.out.println(addedChef);
+									
+									break;
 								}
 								
-								target = target.path("chefs");
-								System.out.println("Introduce your ID and press ENTER:");
-								Long id = Long.valueOf(br.readLine());
-								WebTarget putTarget = target.path("/" + id.toString());
-								
-								NewChef chef = createChef(br);
-								String updatedChef = putTarget.request(MediaType.APPLICATION_JSON_TYPE)
-									    .put(Entity.entity(jsonToString(chef),MediaType.APPLICATION_JSON_TYPE), String.class);
-							
-								System.out.println(updatedChef);
-								break;
-							}
-							case 5: {
-								if (password.equals("")) {
-									login(br);
+								case 4: {
+									if (password.equals("")) {
+										login(br);
+										
+										//Reload target with AUTH set up.
+										HttpAuthenticationFeature feature = HttpAuthenticationFeature.basic(Long.valueOf(id).toString(), password);
+										client = client.register(feature);
+										target = client.target(COOKBRIDGE_URI);    
+									}
 									
-									//Reload target with AUTH set up.
-									HttpAuthenticationFeature feature = HttpAuthenticationFeature.basic(Long.valueOf(id).toString(), password);
-									client = client.register(feature);
-									target = client.target(COOKBRIDGE_URI);    
+									target = target.path("chefs");
+									System.out.println("Introduce your ID and press ENTER:");
+									Long id = Long.valueOf(br.readLine());
+									WebTarget putTarget = target.path("/" + id.toString());
+									
+									NewChef chef = createChef(br);
+									String updatedChef = putTarget.request(MediaType.APPLICATION_JSON_TYPE)
+										    .put(Entity.entity(jsonToString(chef),MediaType.APPLICATION_JSON_TYPE), String.class);
+								
+									System.out.println(updatedChef);
+									break;
 								}
-								
-								target = target.path("chefs");
-								System.out.println("Introduce your ID and press ENTER:");
-								Long id = Long.valueOf(br.readLine());
-								deleteEntity(id, target);
-								
-								//Logout user automatically.
-								password = "";
-								
-								id = -1L;
-								System.out.println("Logout OK");
-								client = ClientBuilder.newClient(config);
-								
-								break;
+								case 5: {
+									if (password.equals("")) {
+										login(br);
+										
+										//Reload target with AUTH set up.
+										HttpAuthenticationFeature feature = HttpAuthenticationFeature.basic(Long.valueOf(id).toString(), password);
+										client = client.register(feature);
+										target = client.target(COOKBRIDGE_URI);    
+									}
+									
+									target = target.path("chefs");
+									System.out.println("Introduce your ID and press ENTER:");
+									Long id = Long.valueOf(br.readLine());
+									deleteEntity(id, target);
+									
+									//Logout user automatically.
+									password = "";
+									
+									id = -1L;
+									System.out.println("Logout OK");
+									client = ClientBuilder.newClient(config);
+									
+									break;
+								}
 							}
+		
+							
+							
+							break;
 						}
+						case 2: {
+							showOptions("Restaurant");
+							System.out.println("Choose option and press ENTER:");
+							int opt = Integer.valueOf(br.readLine());			
+							
+							switch (opt) {
+								case 1: {
+									target = target.path("restaurants");
+									Response response = target.request(MediaType.APPLICATION_JSON).get();
+									String restaurants = response.readEntity(String.class);
+									System.out.println("List of restaurants:");
+									System.out.println(restaurants);
+									
+									break;
+								}
+								case 2: {
+									target = target.path("restaurants");
+									System.out.println("Introduce the Restaurant's ID and press ENTER.");
+									Long id = Long.valueOf(br.readLine());
+									WebTarget getTarget = target.path("/" + id.toString());
+									Response response = getTarget.request(MediaType.APPLICATION_JSON).get();
+									String restaurant = response.readEntity(String.class);
+									int status = response.getStatus();
+									
+									if (status == 200) System.out.println(restaurant.toString());
+									else System.out.println("ERROR! RESTAURANT NOT FOUND!");
+									
+									break;
+								}
+								case 3: {
+									target = target.path("restaurants");
+									NewRestaurant restaurant = createRestaurant(br);
+									String addedRestaurant = target.request(MediaType.APPLICATION_JSON_TYPE)
+										    .post(Entity.entity(jsonToString(restaurant),MediaType.APPLICATION_JSON_TYPE), String.class);
+								
+									System.out.println(addedRestaurant);
+									
+									break;
+								}
+								
+								case 4: {
+									//In case user wants to register for the first time, don't login!
+									if (password.equals("")) {
+										login(br); 
+										
+										//Reload target with AUTH set up.
+										HttpAuthenticationFeature feature = HttpAuthenticationFeature.basic(Long.valueOf(id).toString(), password);
+										client.register(feature);
+										target = client.target(COOKBRIDGE_URI);
+									}
+									
+									target = target.path("restaurants");
+									System.out.println("Introduce your ID and press ENTER:");
+									Long id = Long.valueOf(br.readLine());
+									WebTarget putTarget = target.path("/" + id.toString());
+									
+									NewRestaurant restaurant = createRestaurant(br);
+									String updatedRestaurant = putTarget.request(MediaType.APPLICATION_JSON_TYPE)
+										    .put(Entity.entity(jsonToString(restaurant),MediaType.APPLICATION_JSON_TYPE), String.class);
+								
+									System.out.println(updatedRestaurant);
+									
+									break;
+								}
+								case 5: {
+									//In case user wants to register for the first time, don't login!
+									if (password.equals("")) {
+										login(br); 
+										
+										//Reload target with AUTH set up.
+										HttpAuthenticationFeature feature = HttpAuthenticationFeature.basic(Long.valueOf(id).toString(), password);
+										client.register(feature);
+										target = client.target(COOKBRIDGE_URI);
+									}
+									
+									target = target.path("restaurants");
+									System.out.println("Introduce your ID and press ENTER:");
+									Long id = Long.valueOf(br.readLine());
+									deleteEntity(id, target);
+									
+									//Logout user automatically
+									password = "";
+									id = -1L;
+									System.out.println("Logout OK");
+									client = ClientBuilder.newClient(config);
+									break;
+								}
+							}
+							
+							break;
+						}
+						
+						case 3: {
+							
+							System.out.println("1.- Retrieve restaurant's job offers");
+							System.out.println("2.- GET one job offer");
+							System.out.println("3.- POST a job offer");
+							System.out.println("4.- PUT a job offer");
+							System.out.println("5.- DELETE a job offer");
+							System.out.println("6.- APPLY for a job offer");
+							System.out.println("Choose option and press ENTER:");
+							int opt = Integer.valueOf(br.readLine());			
+							
+							if (password.equals("")) {
+								login(br);
+								
+								//Reload target with AUTH set up.
+								HttpAuthenticationFeature feature = HttpAuthenticationFeature.basic(Long.valueOf(id).toString(), password);
+								client.register(feature);
+								target = client.target(COOKBRIDGE_URI);
+							}
+							
+							switch (opt) {
+								case 1: {
+									target = target.path("jobOffer");
+									System.out.println("Introduce the RestaurantID and press ENTER:");
+									Long restId = Long.valueOf(br.readLine());
+									target = target.queryParam("restaurantId", restId.toString());
+									
+									Response response = target.request(MediaType.APPLICATION_JSON).get();
+									String jobOffers = response.readEntity(String.class);
+									System.out.println("List of job offers by Restaurant " + restId.toString() + ":");
+									System.out.println(jobOffers);
+									
+									break;
+									
+								}
+								case 2: {
+									target = target.path("jobOffer");
+									System.out.println("Introduce JobOffer's ID and press ENTER:");
+									Long id = Long.valueOf(br.readLine());
+									WebTarget getTarget = target.path("/" + id.toString());
+									Response response = getTarget.request(MediaType.APPLICATION_JSON).get();
+									String job = response.readEntity(String.class);
+									int status = response.getStatus();
+									
+									if (status == 200) System.out.println(job.toString());
+									else System.out.println("ERROR! JOB NOT FOUND!");
+									
+									break;
+								}
+								case 3: {
+									//Compulsory to login if user is not.
+									if (password.equals("")) {
+										login(br);
+										
+										//Reload target with AUTH set up.
+										HttpAuthenticationFeature feature = HttpAuthenticationFeature.basic(Long.valueOf(id).toString(), password);
+										client.register(feature);
+										target = client.target(COOKBRIDGE_URI);
+									}
+									
+									target = target.path("jobOffer");
+									NewJobOffer jobOffer = createJobOffer(br);
+									String addedJobOffer = target.request(MediaType.APPLICATION_JSON_TYPE)
+										    .post(Entity.entity(jsonToString(jobOffer),MediaType.APPLICATION_JSON_TYPE), String.class);
+								
+									System.out.println(addedJobOffer);
+									
+									break;
+								}
+								
+								case 4: {
+									//Compulsory to login if user is not.
+									if (password.equals("")) {
+										login(br);
+										
+										//Reload target with AUTH set up.
+										HttpAuthenticationFeature feature = HttpAuthenticationFeature.basic(Long.valueOf(id).toString(), password);
+										client.register(feature);
+										target = client.target(COOKBRIDGE_URI);
+									}
+									
+									target = target.path("jobOffer");
+									System.out.println("Introduce your ID and press ENTER:");
+									Long id = Long.valueOf(br.readLine());
+									WebTarget putTarget = target.path("/" + id.toString());
+									
+									NewJobOffer jobOffer = createJobOffer(br);
+									String updatedJobOffer = putTarget.request(MediaType.APPLICATION_JSON_TYPE)
+										    .put(Entity.entity(jsonToString(jobOffer),MediaType.APPLICATION_JSON_TYPE), String.class);
+								
+									System.out.println(updatedJobOffer);
+									break;
+								}
+								case 5: {
+									//Compulsory to login if user is not.
+									if (password.equals("")) {
+										login(br);
+										
+										//Reload target with AUTH set up.
+										HttpAuthenticationFeature feature = HttpAuthenticationFeature.basic(Long.valueOf(id).toString(), password);
+										client.register(feature);
+										target = client.target(COOKBRIDGE_URI);
+									}
+									
+									target = target.path("jobOffer");
+									System.out.println("Introduce your ID and press ENTER:");
+									Long id = Long.valueOf(br.readLine());
+									deleteEntity(id, target);
+									
+									break;
+								}
+								case 6: {
+									//Compulsory to login if user is not.
+									if (password.equals("")) {
+										login(br);
+										
+										//Reload target with AUTH set up.
+										HttpAuthenticationFeature feature = HttpAuthenticationFeature.basic(Long.valueOf(id).toString(), password);
+										client.register(feature);
+										target = client.target(COOKBRIDGE_URI);
+									}
+									
+									target = target.path("jobOffer");
+									System.out.println("Introduce the ID of the job offer and press ENTER:");
+									Long id = Long.valueOf(br.readLine());
+									
+									WebTarget applyTarget = target.path("/" + id.toString() + "/apply");
+									
+									applyTarget = applyTarget.queryParam("chefId", UserClient.id);
+									
+									Response applyCreation = applyTarget.request(MediaType.APPLICATION_JSON_TYPE).get();
+									
+									if (applyCreation.getStatus() == 200) {
+										System.out.println("Application created.");
+										System.out.println(applyCreation.readEntity(String.class));
+									}
+									
+									break;
+								}
+							}
+							break;
+						}
+						
+						case 4: {
+							System.out.println("1.- Retrieve chef's work in a restaurant");
+							System.out.println("2.- GET one work");
+							System.out.println("3.- POST a work");
+							System.out.println("4.- PUT a work");
+							System.out.println("5.- DELETE a work");
+							System.out.println("Choose option and press ENTER:");
+							int opt = Integer.valueOf(br.readLine());			
+								
+						
+							switch (opt) {
+								case 1: {
+									target = target.path("works");
+									System.out.println("Introduce your ChefID and press ENTER:");
+									Long chefId = Long.valueOf(br.readLine());
+									
+									System.out.println("Introduce the RestaurantID and press ENTER:");
+									Long restId = Long.valueOf(br.readLine());
+									
+									target.queryParam("chefId", chefId.toString());
+									target.queryParam("restaurantId", restId.toString());
+									
+									Response response = target.request(MediaType.APPLICATION_JSON).get();
+									String jobOffers = response.readEntity(String.class);
+									System.out.println("List of works from Chef " + UserClient.id + ":");
+									System.out.println(jobOffers);
+									
+									break;
+									
+								}
+								case 2: {
+									target = target.path("works");
+									System.out.println("Introduce the Work ID and press ENTER:");
+									Long id = Long.valueOf(br.readLine());
+									WebTarget getTarget = target.path("/" + id.toString());
+									Response response = getTarget.request(MediaType.APPLICATION_JSON).get();
+									String work = response.readEntity(String.class);
+									int status = response.getStatus();
+									
+									if (status == 200) System.out.println(work);
+									else System.out.println("ERROR! WORK NOT FOUND!");
+									
+									
+									break;
+								}
+								case 3: {
+									target = target.path("works");
+									NewWork work = createWork(br);
+									String addedWork = target.request(MediaType.APPLICATION_JSON_TYPE)
+										    .post(Entity.entity(jsonToString(work),MediaType.APPLICATION_JSON_TYPE), String.class);
+								
+									System.out.println(addedWork);
+									
+									break;
+								}
+								
+								case 4: {
+									//Compulsory to login if user is not.
+									if (password.equals("")) {
+										login(br);
+										
+										//Reload target with AUTH set up.
+										HttpAuthenticationFeature feature = HttpAuthenticationFeature.basic(Long.valueOf(id).toString(), password);
+										client.register(feature);
+										target = client.target(COOKBRIDGE_URI);
+									}
+									
+									target = target.path("works");
+									System.out.println("Introduce the ID of the Work and press ENTER:");
+									Long id = Long.valueOf(br.readLine());
+									WebTarget putTarget = target.path("/" + id.toString());
+									
+									NewWork work = createWork(br);
+																
+									String updatedWork = putTarget.request(MediaType.APPLICATION_JSON_TYPE)
+								     	.put(Entity.entity(jsonToString(work),MediaType.APPLICATION_JSON_TYPE), String.class);
+									
+									System.out.println(updatedWork);
+									
+									break;
+								}
+								case 5: {
+									//Compulsory to login if user is not.
+									if (password.equals("")) {
+										login(br);
+										
+										//Reload target with AUTH set up.
+										HttpAuthenticationFeature feature = HttpAuthenticationFeature.basic(Long.valueOf(id).toString(), password);
+										client.register(feature);
+										target = client.target(COOKBRIDGE_URI);
+									}
+									
+									target = target.path("works");
+									System.out.println("Introduce the ID of the Work and press ENTER:");
+									Long id = Long.valueOf(br.readLine());
+									deleteEntity(id, target);
+									break;
+								}
 	
-						
-						
-						break;
-					}
-					case 2: {
-						showOptions("Restaurant");
-						System.out.println("Choose option and press ENTER:");
-						int opt = Integer.valueOf(br.readLine());			
-						
-						switch (opt) {
-							case 1: {
-								target = target.path("restaurants");
-								Response response = target.request(MediaType.APPLICATION_JSON).get();
-								String restaurants = response.readEntity(String.class);
-								System.out.println("List of restaurants:");
-								System.out.println(restaurants);
 								
-								break;
 							}
-							case 2: {
-								target = target.path("restaurants");
-								System.out.println("Introduce the Restaurant's ID and press ENTER.");
-								Long id = Long.valueOf(br.readLine());
-								WebTarget getTarget = target.path("/" + id.toString());
-								Response response = getTarget.request(MediaType.APPLICATION_JSON).get();
-								String restaurant = response.readEntity(String.class);
-								int status = response.getStatus();
-								
-								if (status == 200) System.out.println(restaurant.toString());
-								else System.out.println("ERROR! RESTAURANT NOT FOUND!");
-								
-								break;
-							}
-							case 3: {
-								target = target.path("restaurants");
-								NewRestaurant restaurant = createRestaurant(br);
-								String addedRestaurant = target.request(MediaType.APPLICATION_JSON_TYPE)
-									    .post(Entity.entity(jsonToString(restaurant),MediaType.APPLICATION_JSON_TYPE), String.class);
+							break;
+						}
+						
+						case 5: {
+							System.out.println("1.- GET all job offer's applications.");
+							System.out.println("2.- GET info of ONE application.");
+							System.out.println("3.- DELETE an application.");
+							System.out.println("Choose option and press ENTER:");
+							int opt = Integer.valueOf(br.readLine());			
+						
 							
-								System.out.println(addedRestaurant);
+							
+							//Compulsory to login if user is not.
+							if (password.equals("")) {
+								login(br);
 								
-								break;
+								//Reload target with AUTH set up.
+								HttpAuthenticationFeature feature = HttpAuthenticationFeature.basic(Long.valueOf(id).toString(), password);
+								client.register(feature);
+								
+								target = client.target(COOKBRIDGE_URI);
 							}
 							
-							case 4: {
-								//In case user wants to register for the first time, don't login!
-								if (password.equals("")) {
-									login(br); 
+							switch (opt) {
+								case 1: {
+									target = target.path("applications");
+									System.out.println("Introduce Job Offer ID and press ENTER:");
+									Long id = Long.valueOf(br.readLine());
 									
-									//Reload target with AUTH set up.
-									HttpAuthenticationFeature feature = HttpAuthenticationFeature.basic(Long.valueOf(id).toString(), password);
-									client.register(feature);
-									target = client.target(COOKBRIDGE_URI);
-								}
-								
-								target = target.path("restaurants");
-								System.out.println("Introduce your ID and press ENTER:");
-								Long id = Long.valueOf(br.readLine());
-								WebTarget putTarget = target.path("/" + id.toString());
-								
-								NewRestaurant restaurant = createRestaurant(br);
-								String updatedRestaurant = putTarget.request(MediaType.APPLICATION_JSON_TYPE)
-									    .put(Entity.entity(jsonToString(restaurant),MediaType.APPLICATION_JSON_TYPE), String.class);
-							
-								System.out.println(updatedRestaurant);
-								
-								break;
-							}
-							case 5: {
-								//In case user wants to register for the first time, don't login!
-								if (password.equals("")) {
-									login(br); 
+									WebTarget getTarget = target.path("/" + id.toString());
+									Response response = getTarget.request(MediaType.APPLICATION_JSON).get();
+									String application = response.readEntity(String.class);
+									int status = response.getStatus();
 									
-									//Reload target with AUTH set up.
-									HttpAuthenticationFeature feature = HttpAuthenticationFeature.basic(Long.valueOf(id).toString(), password);
-									client.register(feature);
-									target = client.target(COOKBRIDGE_URI);
+									if (status == 200) System.out.println(application);
+									else System.out.println("ERROR! WORK NOT FOUND!");
+									
+									break;
 								}
-								
-								target = target.path("restaurants");
-								System.out.println("Introduce your ID and press ENTER:");
-								Long id = Long.valueOf(br.readLine());
-								deleteEntity(id, target);
-								
-								//Logout user automatically
+								case 2: {
+									target = target.path("applications");
+									System.out.println("Introduce application ID and press ENTER:");
+									Long id = Long.valueOf(br.readLine());
+									WebTarget getTarget = target.path("/" + id.toString());
+									Response response = getTarget.request(MediaType.APPLICATION_JSON).get();
+									String application = response.readEntity(String.class);
+									int status = response.getStatus();
+									
+									if (status == 200) System.out.println(application);
+									else System.out.println("ERROR! WORK NOT FOUND!");
+									
+									break;
+								}
+								case 3: {
+									target = target.path("applications");
+									System.out.println("Introduce the ID of the Application and press ENTER:");
+									Long id = Long.valueOf(br.readLine());
+									deleteEntity(id, target);
+									
+									break;
+								}
+							}
+							break;
+						}
+						//Logout user.
+						case 6: {
+							if (!password.equals("")) {
 								password = "";
 								id = -1L;
 								System.out.println("Logout OK");
 								client = ClientBuilder.newClient(config);
-								break;
+							} else{
+								System.out.println("You are not Logged in!");
 							}
-						}
-						
-						break;
-					}
-					
-					case 3: {
-						
-						System.out.println("1.- Retrieve restaurant's job offers");
-						System.out.println("2.- GET one job offer");
-						System.out.println("3.- POST a job offer");
-						System.out.println("4.- PUT a job offer");
-						System.out.println("5.- DELETE a job offer");
-						System.out.println("6.- APPLY for a job offer");
-						System.out.println("Choose option and press ENTER:");
-						int opt = Integer.valueOf(br.readLine());			
-						
-						if (password.equals("")) {
-							login(br);
-							
-							//Reload target with AUTH set up.
-							HttpAuthenticationFeature feature = HttpAuthenticationFeature.basic(Long.valueOf(id).toString(), password);
-							client.register(feature);
-							target = client.target(COOKBRIDGE_URI);
-						}
-						
-						switch (opt) {
-							case 1: {
-								target = target.path("jobOffer");
-								System.out.println("Introduce the RestaurantID and press ENTER:");
-								Long restId = Long.valueOf(br.readLine());
-								target = target.queryParam("restaurantId", restId.toString());
-								
-								Response response = target.request(MediaType.APPLICATION_JSON).get();
-								String jobOffers = response.readEntity(String.class);
-								System.out.println("List of job offers by Restaurant " + restId.toString() + ":");
-								System.out.println(jobOffers);
-								
-								break;
-								
-							}
-							case 2: {
-								target = target.path("jobOffer");
-								System.out.println("Introduce JobOffer's ID and press ENTER:");
-								Long id = Long.valueOf(br.readLine());
-								WebTarget getTarget = target.path("/" + id.toString());
-								Response response = getTarget.request(MediaType.APPLICATION_JSON).get();
-								String job = response.readEntity(String.class);
-								int status = response.getStatus();
-								
-								if (status == 200) System.out.println(job.toString());
-								else System.out.println("ERROR! JOB NOT FOUND!");
-								
-								break;
-							}
-							case 3: {
-								//Compulsory to login if user is not.
-								if (password.equals("")) {
-									login(br);
-									
-									//Reload target with AUTH set up.
-									HttpAuthenticationFeature feature = HttpAuthenticationFeature.basic(Long.valueOf(id).toString(), password);
-									client.register(feature);
-									target = client.target(COOKBRIDGE_URI);
-								}
-								
-								target = target.path("jobOffer");
-								NewJobOffer jobOffer = createJobOffer(br);
-								String addedJobOffer = target.request(MediaType.APPLICATION_JSON_TYPE)
-									    .post(Entity.entity(jsonToString(jobOffer),MediaType.APPLICATION_JSON_TYPE), String.class);
-							
-								System.out.println(addedJobOffer);
-								
-								break;
-							}
-							
-							case 4: {
-								//Compulsory to login if user is not.
-								if (password.equals("")) {
-									login(br);
-									
-									//Reload target with AUTH set up.
-									HttpAuthenticationFeature feature = HttpAuthenticationFeature.basic(Long.valueOf(id).toString(), password);
-									client.register(feature);
-									target = client.target(COOKBRIDGE_URI);
-								}
-								
-								target = target.path("jobOffer");
-								System.out.println("Introduce your ID and press ENTER:");
-								Long id = Long.valueOf(br.readLine());
-								WebTarget putTarget = target.path("/" + id.toString());
-								
-								NewJobOffer jobOffer = createJobOffer(br);
-								String updatedJobOffer = putTarget.request(MediaType.APPLICATION_JSON_TYPE)
-									    .put(Entity.entity(jsonToString(jobOffer),MediaType.APPLICATION_JSON_TYPE), String.class);
-							
-								System.out.println(updatedJobOffer);
-								break;
-							}
-							case 5: {
-								//Compulsory to login if user is not.
-								if (password.equals("")) {
-									login(br);
-									
-									//Reload target with AUTH set up.
-									HttpAuthenticationFeature feature = HttpAuthenticationFeature.basic(Long.valueOf(id).toString(), password);
-									client.register(feature);
-									target = client.target(COOKBRIDGE_URI);
-								}
-								
-								target = target.path("jobOffer");
-								System.out.println("Introduce your ID and press ENTER:");
-								Long id = Long.valueOf(br.readLine());
-								deleteEntity(id, target);
-								
-								break;
-							}
-							case 6: {
-								//Compulsory to login if user is not.
-								if (password.equals("")) {
-									login(br);
-									
-									//Reload target with AUTH set up.
-									HttpAuthenticationFeature feature = HttpAuthenticationFeature.basic(Long.valueOf(id).toString(), password);
-									client.register(feature);
-									target = client.target(COOKBRIDGE_URI);
-								}
-								
-								target = target.path("jobOffer");
-								System.out.println("Introduce the ID of the job offer and press ENTER:");
-								Long id = Long.valueOf(br.readLine());
-								
-								WebTarget applyTarget = target.path("/" + id.toString() + "/apply");
-								
-								applyTarget = applyTarget.queryParam("chefId", UserClient.id);
-								
-								Response applyCreation = applyTarget.request(MediaType.APPLICATION_JSON_TYPE).get();
-								
-								if (applyCreation.getStatus() == 200) {
-									System.out.println("Application created.");
-									System.out.println(applyCreation.readEntity(String.class));
-								}
-								
-								break;
-							}
-						}
-						break;
-					}
-					
-					case 4: {
-						System.out.println("1.- Retrieve chef's work in a restaurant");
-						System.out.println("2.- GET one work");
-						System.out.println("3.- POST a work");
-						System.out.println("4.- PUT a work");
-						System.out.println("5.- DELETE a work");
-						System.out.println("Choose option and press ENTER:");
-						int opt = Integer.valueOf(br.readLine());			
-							
-					
-						switch (opt) {
-							case 1: {
-								target = target.path("works");
-								System.out.println("Introduce your ChefID and press ENTER:");
-								Long chefId = Long.valueOf(br.readLine());
-								
-								System.out.println("Introduce the RestaurantID and press ENTER:");
-								Long restId = Long.valueOf(br.readLine());
-								
-								target.queryParam("chefId", chefId.toString());
-								target.queryParam("restaurantId", restId.toString());
-								
-								Response response = target.request(MediaType.APPLICATION_JSON).get();
-								String jobOffers = response.readEntity(String.class);
-								System.out.println("List of works from Chef " + UserClient.id + ":");
-								System.out.println(jobOffers);
-								
-								break;
-								
-							}
-							case 2: {
-								target = target.path("works");
-								System.out.println("Introduce the Work ID and press ENTER:");
-								Long id = Long.valueOf(br.readLine());
-								WebTarget getTarget = target.path("/" + id.toString());
-								Response response = getTarget.request(MediaType.APPLICATION_JSON).get();
-								String work = response.readEntity(String.class);
-								int status = response.getStatus();
-								
-								if (status == 200) System.out.println(work);
-								else System.out.println("ERROR! WORK NOT FOUND!");
-								
-								
-								break;
-							}
-							case 3: {
-								target = target.path("works");
-								NewWork work = createWork(br);
-								String addedWork = target.request(MediaType.APPLICATION_JSON_TYPE)
-									    .post(Entity.entity(jsonToString(work),MediaType.APPLICATION_JSON_TYPE), String.class);
-							
-								System.out.println(addedWork);
-								
-								break;
-							}
-							
-							case 4: {
-								//Compulsory to login if user is not.
-								if (password.equals("")) {
-									login(br);
-									
-									//Reload target with AUTH set up.
-									HttpAuthenticationFeature feature = HttpAuthenticationFeature.basic(Long.valueOf(id).toString(), password);
-									client.register(feature);
-									target = client.target(COOKBRIDGE_URI);
-								}
-								
-								target = target.path("works");
-								System.out.println("Introduce the ID of the Work and press ENTER:");
-								Long id = Long.valueOf(br.readLine());
-								WebTarget putTarget = target.path("/" + id.toString());
-								
-								NewWork work = createWork(br);
-															
-								String updatedWork = putTarget.request(MediaType.APPLICATION_JSON_TYPE)
-							     	.put(Entity.entity(jsonToString(work),MediaType.APPLICATION_JSON_TYPE), String.class);
-								
-								System.out.println(updatedWork);
-								
-								break;
-							}
-							case 5: {
-								//Compulsory to login if user is not.
-								if (password.equals("")) {
-									login(br);
-									
-									//Reload target with AUTH set up.
-									HttpAuthenticationFeature feature = HttpAuthenticationFeature.basic(Long.valueOf(id).toString(), password);
-									client.register(feature);
-									target = client.target(COOKBRIDGE_URI);
-								}
-								
-								target = target.path("works");
-								System.out.println("Introduce the ID of the Work and press ENTER:");
-								Long id = Long.valueOf(br.readLine());
-								deleteEntity(id, target);
-								break;
-							}
-
-							
-						}
-						break;
-					}
-					
-					case 5: {
-						System.out.println("1.- GET all job offer's applications.");
-						System.out.println("2.- GET info of ONE application.");
-						System.out.println("3.- DELETE an application.");
-						System.out.println("Choose option and press ENTER:");
-						int opt = Integer.valueOf(br.readLine());			
-					
-						
-						
-						//Compulsory to login if user is not.
-						if (password.equals("")) {
-							login(br);
-							
-							//Reload target with AUTH set up.
-							HttpAuthenticationFeature feature = HttpAuthenticationFeature.basic(Long.valueOf(id).toString(), password);
-							client.register(feature);
-							
-							target = client.target(COOKBRIDGE_URI);
-						}
-						
-						switch (opt) {
-							case 1: {
-								target = target.path("applications");
-								System.out.println("Introduce Job Offer ID and press ENTER:");
-								Long id = Long.valueOf(br.readLine());
-								
-								WebTarget getTarget = target.path("/" + id.toString());
-								Response response = getTarget.request(MediaType.APPLICATION_JSON).get();
-								String application = response.readEntity(String.class);
-								int status = response.getStatus();
-								
-								if (status == 200) System.out.println(application);
-								else System.out.println("ERROR! WORK NOT FOUND!");
-								
-								break;
-							}
-							case 2: {
-								target = target.path("applications");
-								System.out.println("Introduce application ID and press ENTER:");
-								Long id = Long.valueOf(br.readLine());
-								WebTarget getTarget = target.path("/" + id.toString());
-								Response response = getTarget.request(MediaType.APPLICATION_JSON).get();
-								String application = response.readEntity(String.class);
-								int status = response.getStatus();
-								
-								if (status == 200) System.out.println(application);
-								else System.out.println("ERROR! WORK NOT FOUND!");
-								
-								break;
-							}
-							case 3: {
-								target = target.path("applications");
-								System.out.println("Introduce the ID of the Application and press ENTER:");
-								Long id = Long.valueOf(br.readLine());
-								deleteEntity(id, target);
-								
-								break;
-							}
-						}
-						break;
-					}
-					//Logout user.
-					case 6: {
-						if (password.equals("")) {
-							password = "";
-							id = -1L;
-							System.out.println("Logout OK");
-							client = ClientBuilder.newClient(config);
-						} else{
-							System.out.println("You are not Logged in!");
 						}
 					}
+				} catch (Exception ex) {
+					System.out.println("API throws an error!");
+					System.out.println(ex.getMessage());
 				}
 			}
 			
-		} catch (Exception ex) {
-			System.out.println("Internal error in the process. ");
-			ex.printStackTrace();
-		}
+		
 	}
 
 	private static void login(BufferedReader br) throws IOException {
